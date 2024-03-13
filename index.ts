@@ -14,7 +14,6 @@ const PLUGINS = [
     require("./SlotsClicker").default,
     require("./annoiler").default,
     require("./AutoIdle").default,
-    require("./AutoPick").default,
     require("./FindVC").default,
     require("./images").default,
     require("./SlotsClicker").default,
