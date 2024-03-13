@@ -18,7 +18,6 @@ const PLUGINS = [
     require("./FindVC").default,
     require("./images").default,
     require("./SlotsClicker").default,
-    require("./themer").default,
     require("./betterDiscordThemeLoader").default,
     require("./betterPinDMs").default,
     require("./TidalRPCFixer").default,
