@@ -16,10 +16,14 @@ const PLUGINS = [
     require("./AutoIdle").default,
     require("./FindVC").default,
     require("./images").default,
-    require("./SlotsClicker").default,
     require("./betterDiscordThemeLoader").default,
     require("./betterPinDMs").default,
     require("./TidalRPCFixer").default,
+    require("./videoBackground").default,
+    require("./Macrorrr").default,
+    require("./sidebarToggle").default,
+    require("./messageTimeAgo").default,
+    require("./noCanaryMessageLinks").default,
 ];
 
 for (const plugin of PLUGINS) {
