@@ -1,91 +1,114 @@
 /*
- * Vencord, a modification for Discord's desktop app
- * Copyright (c) 2023 Vendicated and contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
-*/
+ * Vencord, a Discord client mod
+ * Copyright (c) 2024 Vendicated and contributors
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
 
-import { definePluginSettings, OptionType } from "@api/Settings";
-import { HotKeyRecorder } from '@components/PluginSettings/components/SettingHotkeyComponent';
+import { definePluginSettings } from "@api/Settings";
+import { cl } from "@components/ExpandableHeader";
 import { Devs } from "@utils/constants";
-import definePlugin from '@utils/types';
+import definePlugin, { OptionType } from "@utils/types";
+import { MessageActions, SelectedChannelStore, useState } from "@webpack/common";
 
-const settings = definePluginSettings({
+let isRecordingGlobal = false;
+
+function sendCustomMessage(channelId: string, content: string) {
+    const messageData = {
+        content: content.trim(), // Trim content before sending
+    };
+    MessageActions.sendMessage(channelId, messageData, true);
+}
+
+function getCurrentChannelId(): string {
+    return SelectedChannelStore.getChannelId();
+}
+
+export const settings = definePluginSettings({
     hotkey: {
+        description: "The hotkey to click the button in the message div.",
         type: OptionType.COMPONENT,
-        description: "Hotkey to trigger AutoClick",
-        default: ["F22"], // Assuming this gets properly passed down to your component
-        component: HotKeyRecorder // Ensure HotKeyRecorder is imported and can handle these props
-    },
-    buttonSelector: {
-        type: OptionType.STRING,
-        description: "CSS Selector for the button to auto-click",
-        default: "button.component__43381", // Default selector targeting the provided button
-    },
-    authorId: {
-        type: OptionType.STRING,
-        description: "Author ID for targeted clicking",
-        default: "",
-    },
-    imgName: {
-        type: OptionType.STRING,
-        description: "Image name for additional click targeting",
-        default: "",
-    },
+        default: ["Control", "Shift", "P"],
+        component: () => {
+            const [isRecording, setIsRecording] = useState(false);
+            const [recordedKeys, setRecordedKeys] = useState<string[]>([]);
+
+            const recordKeybind = () => {
+                setIsRecording(true);
+                isRecordingGlobal = true;
+                setRecordedKeys([]);
+
+                const keydownListener = (e: KeyboardEvent) => {
+                    const { key } = e;
+                    if (!recordedKeys.includes(key)) {
+                        setRecordedKeys(prevKeys => [...prevKeys, key]);
+                    }
+                };
+
+                const keyupListener = (e: KeyboardEvent) => {
+                    setIsRecording(false);
+                    isRecordingGlobal = false;
+                    document.removeEventListener("keydown", keydownListener);
+                    document.removeEventListener("keyup", keyupListener);
+                };
+
+                document.addEventListener("keydown", keydownListener);
+                document.addEventListener("keyup", keyupListener);
+            };
+
+            return (
+                <>
+                    <div className={cl("key-recorder-container")} onClick={recordKeybind}>
+                        <div className={cl("key-recorder")}>
+                            {recordedKeys.map((key, index) => (
+                                <span key={index}>{key}</span>
+                            ))}
+                        </div>
+                    </div>
+                </>
+            );
+        }
+    }
 });
 
 export default definePlugin({
-    name: "AutoClick",
-    description: "Automatically clicks a designated button when a specific keybind is pressed.",
-    authors: [Devs.lucky], // Assuming Devs.lucky is correctly defined
+    name: "CustomHotkey",
+    description: "Clicks the button in the message div when a hotkey is pressed and the author is the same.",
+    authors: [Devs.Ethan],
     settings,
 
     start() {
-        const handler = (e) => {
-            const hotkeys = settings.store.hotkey; // Assuming settings.store is correctly implemented
-            if (hotkeys.includes(e.key)) {
-                this.clickNextButton(settings.store.buttonSelector, settings.store.authorId, settings.store.imgName);
-                e.preventDefault();
-            }
-        };
-        window.addEventListener("keydown", handler);
-        this.keydownHandler = handler; // Store the handler for later removal
+        document.addEventListener("keydown", this.event);
     },
 
     stop() {
-        window.removeEventListener("keydown", this.keydownHandler);
+        document.removeEventListener("keydown", this.event);
     },
 
-    clickNextButton(selector, authorId = "", imgName = "") {
-        const button = document.querySelector(selector);
-        if (!button) {
-            console.error(`No button found with the selector: "${selector}"`);
-            return;
+    event(e: KeyboardEvent) {
+        const { hotkey } = settings.store;
+        const pressedKey = e.key.toLowerCase();
+
+        if (isRecordingGlobal) return;
+
+        const isHotkeyPressed = hotkey.every(key => {
+            if (key === "Control") return e.ctrlKey;
+            if (key === "Shift") return e.shiftKey;
+            if (key === "Alt") return e.altKey;
+            if (key === "Meta") return e.metaKey;
+            return e.key.toLowerCase() === key.toLowerCase();
+        });
+
+        if (isHotkeyPressed) {
+            const messages = document.querySelectorAll(".cozyMessage__64ce7");
+            messages.forEach(message => {
+                const authorName = message.querySelector(".username_d30d99")?.textContent;
+                const messageContent = message.querySelector(".messageContent__21e69")?.textContent;
+
+                if (authorName === "Satan" && messageContent?.includes("Pull Again")) {
+                    const button = message.querySelector("button");
+                    if (button) button.click();
+                }
+            });
         }
-
-        const matchesAuthorId = authorId ? button.closest(`[data-author-id="${authorId}"]`) : true;
-        const matchesImgName = imgName ?
-        Array.from(button.querySelectorAll('img')).some((img) => (img as HTMLImageElement).src.includes(imgName)) : true;
-
-
-
-        if (!matchesAuthorId || !matchesImgName) {
-            console.error(`Button found but does not match the specified criteria.`);
-            return;
-        }
-
-        button.click();
-        console.log('Button clicked successfully!');
-    },
+    }
 });

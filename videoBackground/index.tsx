@@ -8,7 +8,6 @@ import { definePluginSettings } from "@api/Settings";
 import { Devs } from "@utils/constants";
 import definePlugin, { OptionType } from "@utils/types";
 
-
 const settings = definePluginSettings({
     videoBgURL: {
         type: OptionType.STRING,
@@ -24,28 +23,28 @@ export default definePlugin({
     settings,
 
     start() {
-        // Define video source and attributes
-        const videoSrc = [settings.store.videoBgURL];
-        const videoAttributes = { autoplay: true, muted: true, loop: true, style: "width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: -1;" };
-
         // Create video element and set attributes
-        const video = Object.assign(document.createElement("videoBG"), videoAttributes);
+        const video = document.createElement("video");
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        video.style.cssText = "width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; z-index: -1; object-fit: cover;";
 
-        // Create source element and set attributes
-        const source = Object.assign(document.createElement("source"), { src: videoSrc, type: "video/mp4" });
+        // Set the video source
+        video.src = settings.store.videoBgURL;
 
-        // Append source to video
-        video.appendChild(source);
+        // Use a class or id to uniquely identify the video element for easy removal
+        video.id = "videoBackground";
 
         // Append video to the body as the background
         document.body.appendChild(video);
     },
+
     stop() {
-        // Safely remove the video background when the plugin is disabled
-        const videoBackground: HTMLVideoElement | null = document.querySelector("videoBgURL");
-        if (videoBackground && videoBackground.parentNode) {
-            videoBackground.parentNode.removeChild(videoBackground);
+        // Remove the video background when the plugin is disabled
+        const videoBackground = document.getElementById("videoBackground");
+        if (videoBackground) {
+            videoBackground.remove();
         }
     },
-
 });
