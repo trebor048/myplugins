@@ -10,20 +10,20 @@ export const VERSION = "1.0.1";
 import Plugins from "~plugins";
 
 const PLUGINS = [
-    require("./keypressClick").default,
-    require("./SlotsClicker").default,
     require("./annoiler").default,
+    require("./AutoClick2").default,
     require("./AutoIdle").default,
-    require("./FindVC").default,
-    require("./images").default,
+    require("./AutoPick2").default,
     require("./betterDiscordThemeLoader").default,
     require("./betterPinDMs").default,
+    require("./FindVC").default,
+    require("./images").default,
+    require("./keypressClick").default,
+    require("./noCanaryMessageLinks").default,
+    require("./messageTimeAgo").default,
+    require("./sidebarToggle").default,
     require("./TidalRPCFixer").default,
     require("./videoBackground").default,
-    require("./Macrorrr").default,
-    require("./sidebarToggle").default,
-    require("./messageTimeAgo").default,
-    require("./noCanaryMessageLinks").default,
 ];
 
 for (const plugin of PLUGINS) {

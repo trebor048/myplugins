@@ -16,8 +16,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import definePlugin, { OptionType } from "@utils/types";
 import { definePluginSettings } from "@api/Settings";
+import { Devs } from "@utils/constants";
+import definePlugin, { OptionType } from "@utils/types";
 
 function toggleView(el, slideDirection) {
     const isHidden = el.style.display === "none";
@@ -50,10 +51,10 @@ function handler(event) {
         toggleView(document.querySelector('[aria-label="Servers sidebar"]'), -100);
     } else if (channelsSidebarHotkey && event.altKey && event.key.toLowerCase() === channelsSidebarHotkey) {
         // WARN: not sure how to safely select classNames since these may change often
-        toggleView(document.querySelector('.sidebar_ded4b5'), -100);
+        toggleView(document.querySelector(".sidebar_ded4b5"), -100);
     } else if (memberListHotkey && event.altKey && event.key.toLowerCase() === memberListHotkey) {
         // WARN: not sure how to safely select classNames since these may change often
-        toggleView(document.querySelector('.container_b2ce9c'), 100);
+        toggleView(document.querySelector(".container_b2ce9c"), 100);
     }
 }
 
@@ -78,11 +79,7 @@ const settings = definePluginSettings({
 export default definePlugin({
     name: "SidebarToggle",
     description: "Adds hotkeys to toggle the channels, server sidebar, and member list with animation",
-    authors: [
-        {
-            id: 0n,
-            name: "CodaBool",
-        },
+    authors: [Devs.lucky
     ],
     settings,
     start() {

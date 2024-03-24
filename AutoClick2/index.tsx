@@ -1,26 +1,37 @@
 /*
- * Vencord, a Discord client mod
- * Copyright (c) 2024 Vendicated and contributors
- * SPDX-License-Identifier: GPL-3.0-or-later
- */
+ * Vencord, a modification for Discord's desktop app
+ * Copyright (c) 2023 Vendicated and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
-import HotKeyRecorder from '@components/PluginSettings/'; // Ensure the path is correct
 import { definePluginSettings, OptionType } from "@api/Settings";
+import { HotKeyRecorder } from '@components/PluginSettings/components/SettingHotkeyComponent';
 import { Devs } from "@utils/constants";
-import definePlugin from "@utils/types"; // This might need adjustment based on your actual import
-
+import definePlugin from '@utils/types';
 
 const settings = definePluginSettings({
     hotkey: {
         type: OptionType.COMPONENT,
         description: "Hotkey to trigger AutoClick",
         default: ["F22"], // Assuming this gets properly passed down to your component
-        component: HotKeyRecorder // Ensure HotKeyRecorder can handle these props
+        component: HotKeyRecorder // Ensure HotKeyRecorder is imported and can handle these props
     },
     buttonSelector: {
         type: OptionType.STRING,
         description: "CSS Selector for the button to auto-click",
-        default: "div.container_dbadf5 > div > div > div > button",
+        default: "button.component__43381", // Default selector targeting the provided button
     },
     authorId: {
         type: OptionType.STRING,
@@ -34,14 +45,13 @@ const settings = definePluginSettings({
     },
 });
 
-const AutoClickPlugin = definePlugin({
+export default definePlugin({
     name: "AutoClick",
     description: "Automatically clicks a designated button when a specific keybind is pressed.",
     authors: [Devs.lucky], // Assuming Devs.lucky is correctly defined
     settings,
 
     start() {
-        // Ensure 'this' is correctly bound or use arrow functions for handler
         const handler = (e) => {
             const hotkeys = settings.store.hotkey; // Assuming settings.store is correctly implemented
             if (hotkeys.includes(e.key)) {
@@ -58,40 +68,24 @@ const AutoClickPlugin = definePlugin({
     },
 
     clickNextButton(selector, authorId = "", imgName = "") {
-        // Click logic remains the same
-        // ...
+        const button = document.querySelector(selector);
+        if (!button) {
+            console.error(`No button found with the selector: "${selector}"`);
+            return;
+        }
+
+        const matchesAuthorId = authorId ? button.closest(`[data-author-id="${authorId}"]`) : true;
+        const matchesImgName = imgName ?
+        Array.from(button.querySelectorAll('img')).some((img) => (img as HTMLImageElement).src.includes(imgName)) : true;
+
+
+
+        if (!matchesAuthorId || !matchesImgName) {
+            console.error(`Button found but does not match the specified criteria.`);
+            return;
+        }
+
+        button.click();
+        console.log('Button clicked successfully!');
     },
 });
-
-export default AutoClickPlugin;
-
-    const clickNextButton = (selector, authorId = "", imgName = "") => {
-        const buttons = document.querySelectorAll(selector);
-        if (!buttons.length) {
-            console.error(`No buttons found with the selector: "${selector}"`);
-            return;
-        }
-
-        const filteredButtons = Array.from(buttons).filter(button => {
-            const matchesAuthorId = authorId ? button.closest(`[data-author-id="${authorId}"]`) : true;
-            const matchesImgName = imgName ?
-                Array.from(button.querySelectorAll('img')).some(img => img.src.includes(imgName)) : true;
-
-            return matchesAuthorId && matchesImgName;
-        });
-
-        if (!filteredButtons.length) {
-            console.error(`No buttons found matching the specified criteria.`);
-            return;
-        }
-
-        filteredButtons[0].click();
-        console.log('Button clicked successfully!');
-    };
-
-    return { start, stop, clickNextButton };
-};
-
-export default AutoClickPlugin;
-
-// Assuming HotKeyRecorder is defined correctly
